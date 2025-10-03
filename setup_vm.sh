@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 set -e
 
 # ----------------------------------------
@@ -104,7 +104,7 @@ else
 fi
 
 # ----------------------------------------
-# 3. 确认 dotfiles 仓库存在
+# 3. 确认 dotfiles 仓库存在 & 更新 submodule
 # ----------------------------------------
 if [ ! -d "$DOTFILES_DIR/.git" ]; then
     echo "Error: dotfiles repo not found at $DOTFILES_DIR" >&2
@@ -114,6 +114,8 @@ fi
 
 cd "$DOTFILES_DIR"
 git pull
+echo_progress "Updating git submodules..."
+git submodule update --init --recursive
 
 # ----------------------------------------
 # 4. 首次执行：备份原有配置并创建符号链接
