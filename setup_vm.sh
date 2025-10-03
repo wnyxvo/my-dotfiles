@@ -157,21 +157,44 @@ update_git_repos() {
         mkdir -p "$target_dir"
         while IFS= read -r repo_url || [ -n "$repo_url" ]; do
             [ -z "$repo_url" ] && continue
-            [[ "$repo_url" == \#* ]] && continue  # 跳过注释行
+            [[ "$repo_url" == \#* ]] && continue
             
             name=$(basename "$repo_url" .git)
             dest="$target_dir/$name"
             
             if [ ! -d "$dest" ]; then
                 echo "Cloning $name..."
-                git clone -q "$repo_url" "$dest"
+                if ! git clone -q "$repo_url" "$dest"; then
+                    echo "Error: Failed to clone $name" >&2
+                    return 1
+                fi
             else
                 echo "Updating $name..."
-                git -C "$dest" pull -q
+                pushd "$dest" > /dev/null || {
+                    echo "Error: Cannot enter $dest" >&2
+                    return 1
+                }
+                
+                # 确保在分支上
+                if ! git symbolic-ref -q HEAD > /dev/null; then
+                    # 获取默认分支名
+                    default_branch=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
+                    [ -z "$default_branch" ] && default_branch="main"
+                    
+                    echo "Checking out $default_branch branch"
+                    git checkout -q "$default_branch"
+                fi
+                
+                # 拉取更新
+                if ! git pull -q; then
+                    echo "Error: Failed to pull updates for $name" >&2
+                    popd > /dev/null
+                    return 1
+                fi
+                
+                popd > /dev/null
             fi
         done < "$list_file"
-    else
-        echo "Warning: List file $list_file not found"
     fi
 }
 
