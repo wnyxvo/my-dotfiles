@@ -12,7 +12,7 @@
 克隆仓库
 
 ```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+git clone git@github.com:wnyxvo/my-dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
